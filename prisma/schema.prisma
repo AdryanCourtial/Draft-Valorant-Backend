@@ -13,3 +13,56 @@ model User {
   username String
   password String
 }
+
+model Agent {
+  id                       Int       @id @default(autoincrement())
+  uuid                     String    @unique
+  displayName              String
+  description              String
+  developerName            String
+  releaseDate              DateTime
+  displayIcon              String
+  displayIconSmall         String
+  bustPortrait             String
+  fullPortrait             String
+  fullPortraitV2           String
+  killfeedPortrait         String
+  background               String
+  roleId                   Int
+  role                     Role      @relation(fields: [roleId], references: [id])
+  backgroundGradientColors String
+  abilities                Ability[]
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique
+  displayName String
+  description String
+  displayIcon String
+  agents      Agent[]
+}
+
+model Ability {
+  id          Int    @id @default(autoincrement())
+  agentId     Int
+  agent       Agent  @relation(fields: [agentId], references: [id])
+  slot        String
+  displayName String
+  description String
+  displayIcon String
+}
+
+model Map {
+  id                      Int     @id @default(autoincrement())
+  uuid                    String  @unique
+  displayName             String
+  tacticalDescription     String?
+  coordinates             String?
+  displayIcon             String
+  listViewIcon            String
+  listViewIconTall        String
+  splash                  String
+  stylizedBackgroundImage String
+  premierBackgroundImage  String
+}
