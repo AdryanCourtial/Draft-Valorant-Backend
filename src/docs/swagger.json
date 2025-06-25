@@ -7,10 +7,138 @@
     },
     "servers": [
       {
-        "url": "http://localhost:3000",
+        "url": "http://localhost:3000/api",
         "description": "Serveur local"
       }
     ],
-    "paths": {}
+    "paths": {
+      "/agent": {
+        "get": {
+          "summary": "Récupère tous les agents",
+          "tags": ["Agent"],
+          "responses": {
+            "200": {
+              "description": "Liste des agents récupérée avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Agent" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/agent/{id}": {
+        "get": {
+          "summary": "Récupère un agent par son id",
+          "tags": ["Agent"],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "UUID de l'agent",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Agent récupéré avec succès",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/Agent" }
+                }
+              }
+            },
+            "404": {
+              "description": "Agent non trouvé"
+            }
+          }
+        }
+      },
+      "/map": {
+        "get": {
+          "summary": "Récupère toutes les maps",
+          "tags": ["Map"],
+          "responses": {
+            "200": {
+              "description": "Liste des maps récupérée avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Map" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/role": {
+        "get": {
+          "summary": "Récupère tous les rôles",
+          "tags": ["Role"],
+          "responses": {
+            "200": {
+              "description": "Liste des rôles récupérée avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Role" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Agent": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string", "description": "Identifiant unique de l'agent" },
+            "displayName": { "type": "string" },
+            "description": { "type": "string" },
+            "developerName": { "type": "string" },
+            "releaseDate": { "type": "string", "format": "date-time" },
+            "roleId": { "type": "string" },
+            "displayIcon": { "type": "string" },
+            "displayIconSmall": { "type": "string" }
+          },
+          "required": ["uuid", "displayName", "roleId"]
+        },
+        "Map": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string" },
+            "displayName": { "type": "string" },
+            "tacticalDescription": { "type": "string" },
+            "coordinates": { "type": "string" },
+            "displayIcon": { "type": "string" },
+            "listViewIcon": { "type": "string" },
+            "listViewIconTall": { "type": "string" },
+            "splash": { "type": "string" }
+          },
+          "required": ["uuid", "displayName"]
+        },
+        "Role": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string" },
+            "displayName": { "type": "string" },
+            "description": { "type": "string" },
+            "displayIcon": { "type": "string" }
+          },
+          "required": ["uuid", "displayName"]
+        }
+      }
+    }
   }
   

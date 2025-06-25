@@ -5,6 +5,8 @@ import { PrismaClient } from '@prisma/client';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './docs/swagger.json';
 import agentRouter from './routes/agentRoute';
+import mapRouter from './routes/mapRoute';
+import roleRouter from './routes/roleRoute';
 
 dotenv.config();
 
@@ -19,10 +21,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(cors({
     origin: process.env.FRONT_URL,
     credentials: true, 
-  }));
+}));
+  
+const mainRouter = express.Router();
 
-app.use("/agent", agentRouter);
+mainRouter.use('/agent', agentRouter);
+mainRouter.use('/map', mapRouter);
+mainRouter.use('/role', roleRouter);
 
+app.use('/api', mainRouter);
   
 
 const PORT = process.env.PORT || 3000;
