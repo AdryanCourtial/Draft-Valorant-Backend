@@ -96,6 +96,171 @@
             }
           }
         }
+      },    
+      "/auth/register": {
+        "post": {
+          "summary": "Inscription d'un nouvel utilisateur",
+          "tags": ["Auth"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Utilisateur créé avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Requête invalide"
+            },
+            "409": {
+              "description": "Email ou username déjà utilisé"
+            }
+          }
+        }
+      },
+      "/auth/login": {
+        "post": {
+          "summary": "Connection d'un utilisateur",
+          "tags": ["Auth"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Login successful",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserLogin"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Requête invalide"
+            },
+            "401": {
+              "description": "Invalid email or password"
+            }
+          }
+        }
+      },
+      "/user": {
+        "get": {
+          "summary": "Récupérer les informations de l'utilisateur connecté",
+          "tags": ["User"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Informations de l'utilisateur récupérées avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "username": { "type": "string" },
+                      "email": { "type": "string", "format": "email" },
+                      "createdAt": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Utilisateur non authentifié"
+            },
+            "404": {
+              "description": "Utilisateur non trouvé"
+            }
+          }
+        },
+        "put": {
+          "summary": "Mettre à jour les informations de l'utilisateur connecté",
+          "tags": ["User"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "email": { "type": "string", "format": "email" },
+                    "password": { "type": "string", "format": "password" }
+                  },
+                  "example": {
+                    "username": "nouveauNom",
+                    "email": "nouveau@mail.com",
+                    "password": "motdepasse123"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Utilisateur mis à jour avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "user": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer" },
+                          "username": { "type": "string" },
+                          "email": { "type": "string", "format": "email" },
+                          "createdAt": { "type": "string", "format": "date-time" }
+                        }
+                      },
+                      "token": { "type": "string", "description": "Nouveau token JWT" }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Aucune donnée fournie ou données invalides"
+            },
+            "401": {
+              "description": "Non authentifié"
+            },
+            "500": {
+              "description": "Erreur serveur"
+            }
+          }
+        }
       }
     },
     "components": {
@@ -137,6 +302,54 @@
             "displayIcon": { "type": "string" }
           },
           "required": ["uuid", "displayName"]
+        },
+        "RegisterRequest": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string", "example": "phoenix" },
+            "email": { "type": "string", "example": "phoenix@example.com" },
+            "password": { "type": "string", "example": "securePassword123" }
+          },
+          "required": ["username", "email", "password"]
+        },
+        "LoginRequest": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string", "example": "phoenix@example.com" },
+            "password": { "type": "string", "example": "securePassword123" }
+          },
+          "required": ["email", "password"]
+        },
+        "User": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer" },
+            "username": { "type": "string" },
+            "email": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" }
+          }
+        },
+        "UserLogin": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "example": "Login successful"
+            },
+            "token": {
+              "type": "string",
+              "description": "JWT token d'authentification"
+            },
+            "user": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "example": 2 },
+                "username": { "type": "string", "example": "babalebaba" },
+                "email": { "type": "string", "format": "email", "example": "baba@baba.baba" },
+                "createdAt": { "type": "string", "format": "date-time", "example": "2025-06-26T08:57:01.367Z" }
+              }
+            }
+          }
         }
       }
     }

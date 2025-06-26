@@ -7,16 +7,17 @@ import swaggerDocument from './docs/swagger.json';
 import agentRouter from './routes/agentRoute';
 import mapRouter from './routes/mapRoute';
 import roleRouter from './routes/roleRoute';
+import userRouter from './routes/userRoute';
+import authRouter from './routes/authRoute';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
 
-app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(cors({
     origin: process.env.FRONT_URL,
@@ -28,6 +29,9 @@ const mainRouter = express.Router();
 mainRouter.use('/agent', agentRouter);
 mainRouter.use('/map', mapRouter);
 mainRouter.use('/role', roleRouter);
+mainRouter.use('/user', userRouter);
+mainRouter.use('/auth', authRouter);
+mainRouter.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use('/api', mainRouter);
   
