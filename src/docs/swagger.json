@@ -96,40 +96,6 @@
             }
           }
         }
-      },    
-      "/auth/register": {
-        "post": {
-          "summary": "Inscription d'un nouvel utilisateur",
-          "tags": ["Auth"],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegisterRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Utilisateur créé avec succès",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Requête invalide"
-            },
-            "409": {
-              "description": "Email ou username déjà utilisé"
-            }
-          }
-        }
       },
       "/auth/login": {
         "post": {
@@ -165,6 +131,31 @@
           }
         }
       },
+      "/auth/logout": {
+        "post": {
+          "summary": "Déconnexion d'un utilisateur",
+          "tags": ["Auth"],
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": {
+              "description": "Déconnexion réussie, token supprimé",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string", "example": "Déconnexion réussie, token supprimé" }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Non autorisé (token manquant ou invalide)"
+            }
+          }
+        }
+      },
       "/user": {
         "get": {
           "summary": "Récupérer les informations de l'utilisateur connecté",
@@ -196,6 +187,38 @@
             },
             "404": {
               "description": "Utilisateur non trouvé"
+            }
+          }
+        },
+        "post": {
+          "summary": "Inscription d'un nouvel utilisateur",
+          "tags": ["User"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Utilisateur créé avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Requête invalide"
+            },
+            "409": {
+              "description": "Email ou username déjà utilisé"
             }
           }
         },
@@ -260,10 +283,37 @@
               "description": "Erreur serveur"
             }
           }
+        },
+        "delete": {
+          "summary": "Supprimer l'utilisateur connecté",
+          "tags": ["User"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User deleted successfully"
+            },
+            "401": {
+              "description": "User ID is required"
+            },
+            "404": {
+              "description": "User not found"
+            }
+          }
         }
       }
     },
     "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
       "schemas": {
         "Agent": {
           "type": "object",

@@ -1,11 +1,8 @@
 import { Router } from "express";
-import { login, logout, register } from "../controllers/authController";
+import { login, logout } from "../controllers/authController";
 import authMiddleware from "../middlewares/authMiddleware";
 
 const authRouter = Router();
-
-// Registration route
-authRouter.post('/register', register);
 
 // Login route
 authRouter.post('/login', login);

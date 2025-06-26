@@ -37,6 +37,50 @@ export const getUserInfo = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
+// Register a new user
+export const register = async (req: Request, res: Response): Promise<void> => {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+      res.status(400).json({ message: "Username, Email and Password are required." });
+      return;
+  }
+
+  try {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ username }, { email }]
+      },
+    });
+
+    if (existingUser) {
+        res.status(409).json({ message: "Username or email already exists." });
+        return;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+      }
+    });
+
+    res.status(201).json({ message: "User created", user: newUser });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // This function updates user information based on the authenticated user's ID.
 export const updateUserInfo = async (req: Request, res: Response): Promise<void> => {
     const userId = req.user?.id;
@@ -89,8 +133,7 @@ export const updateUserInfo = async (req: Request, res: Response): Promise<void>
 
 // Delete a user by ID
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
-  const userId = parseInt(req.params.id);
-
+  const userId = req.user?.id;
   if (!userId) {
     res.status(400).json({ message: "User ID is required" });
     return;
