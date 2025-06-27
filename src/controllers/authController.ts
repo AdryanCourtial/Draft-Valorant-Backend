@@ -15,13 +15,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         return;
     }
   
-    try {
+  try {
+      console.log("Login attempt with email:", email);
       const user = await prisma.user.findUnique({ where: { email } });
   
       if (!user) {
           res.status(401).json({ message: "Invalid email or password" });
           return;
-      }
+    }
+    
+      console.log("User found:", user.id);
   
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
@@ -29,7 +32,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           return;
       }
   
-      const token = generateToken(user.id, user.email);
+    const token = generateToken(user.id, user.email);
+    
+      console.log("Token generated for user:", user.id);
         
       res.cookie("session", token, {
         httpOnly: true,
@@ -42,8 +47,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   
       res.status(200).json({
           message: "Login successful",
-            token,
-        user: userData
+          token,
+          user: userData
       });
     } catch (err) {
       console.error("Login error:", err);
