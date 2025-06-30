@@ -13,6 +13,11 @@ npx ts-node prisma/seed.ts
 
 ```
 
+## Ajouter les tables en base sans historique
+```
+npx prisma db push
+```
+
 ## Voir le swagger
 
 ```
