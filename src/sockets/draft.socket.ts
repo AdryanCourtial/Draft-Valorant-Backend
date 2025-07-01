@@ -2,6 +2,8 @@ import { Server, Socket } from "socket.io";
 import { generateShortId, generateUuid } from "../utils/utils";
 import type { Room, Side, SideTeam } from 'drafter-valorant-types';
 import { StateRoomGame } from 'drafter-valorant-types';
+import { computeTeamsWinrate } from "../utils/calculWinRate";
+import { createMockRoom } from "../types/mockInterface";
 
 let rooms: { [roomId: string]: Room } = {}; 
 
@@ -22,6 +24,10 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         state: StateRoomGame.WAITING,
         creator_id: creatorId,
         spectators: [],
+        draft_session: {
+          curent_turn: 0,
+          draft_actions: []
+        },
         attackers_side: {
           name: attackers,
           team_leader: 0,
@@ -132,6 +138,35 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         io.to(roomId).emit("room-updated", room);
       }
     });
+
+  
+  socket.on('mockRoom', ( ) => {
+    const room = createMockRoom();
+    console.log('Mock room:', room);
+    rooms[room.uuid] = room; // Simule l'ajout de la room
+    console.log(rooms);
+    socket.join(room.uuid);
+    io.to(room.uuid).emit('endGame', { roomId: room.uuid });
+  });
+
+  socket.on('endGame', async ({ roomId }) => {
+    console.log(`🔴 Fin de la partie pour la room ${roomId}`);
+    const room = rooms[roomId];
+    console.log('room', room);
+    if (!room) {
+      console.error(`Room ${roomId} not found`);
+      return;
+    }
+
+    try {
+      const winrates = await computeTeamsWinrate(room);
+      console.log('Winrates:', winrates);
+      io.to(room.uuid).emit('gameResult', { winrates });
+    } catch (error) {
+      console.error('Erreur lors du calcul des winrates:', error);
+      io.to(room.id).emit('gameResult', { error: 'Erreur serveur' });
+    }
+  });
 
 
 

@@ -34,6 +34,7 @@ model Agent {
   backgroundGradientColors String
   abilities                Ability[]
   winrateStats             AgentWinrateStat[]
+  topWinrates TopAgentWinrate[]
 }
 
 model Role {
@@ -67,6 +68,7 @@ model Map {
   splash                  String
   stylizedBackgroundImage String
   premierBackgroundImage  String
+  mapWinrateStats         MapWinrateStat[]
 }
 
 model AgentWinrateStat {
@@ -77,5 +79,30 @@ model AgentWinrateStat {
   winrate    Float
   recordedAt DateTime @default(now())
 
+  @@index([agentId])
+}
+
+model MapWinrateStat {
+  id         Int      @id @default(autoincrement())
+  mapId      Int
+  map        Map      @relation(fields: [mapId], references: [id])
+  atkWinrate Float
+  defWinrate Float
+  recordedAt DateTime @default(now())
+  topAgentWinrates TopAgentWinrate[]
+
+  @@index([mapId])
+}
+
+
+model TopAgentWinrate {
+  id         Int      @id @default(autoincrement())
+  mapStatId  Int
+  agentId    Int
+  winrate    Float
+  mapStat    MapWinrateStat @relation(fields: [mapStatId], references: [id])
+  agent      Agent    @relation(fields: [agentId], references: [id])
+
+  @@index([mapStatId])
   @@index([agentId])
 }
