@@ -3,76 +3,83 @@ import { FindFirstNullInArray, generateShortId, generateUuid } from "../utils/ut
 import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfChampIsOpen } from "../utils/game";
 import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
+import { clear } from "console";
 
 let rooms: { [roomId: string]: Room } = {}; 
+const timers: { [roomId: string]: NodeJS.Timeout } = {};
+const timeLefts: { [roomId: string]: number } = {};
 
 export const draftSocketHandler = (io: Server, socket: Socket) => {
   console.log(`🟢 [socket] User connecté : ${socket.id}`);
 
-  const timersByRoomId: { [roomId: string]: ReturnType<typeof setInterval> } = {};
 
   const TIMER_DURATION = 10
 
-  const startTimer = (room: Room, roomId: string, onExpire: () => void) => {
+  const startTimer = (io: Server, roomId: string, onExpire: () => void) => {
+    clearTimer(roomId); // sécurité
+
     let timeLeft = TIMER_DURATION;
-    
-    timersByRoomId[room.uuid] = setInterval(() => {
-      timeLeft--;
+    timeLefts[roomId] = timeLeft;
+
+    timers[roomId] = setInterval(() => {
+      timeLefts[roomId]--;
+      io.to(roomId).emit("timer-update", timeLefts[roomId]);
       
-      console.log(`[TIMER][${room.uuid}] Time left:`, timeLeft);
-      io.to(roomId).emit("timer-update", timeLeft);
-      
-      if (timeLeft <= 0) {
-        clearTimer(room);
-        // console.log(`[TIMER][${room.uuid}] Expired!`);
-        onExpire(); // callback pour passer automatiquement le tour ou autre
+      if (timeLefts[roomId] <= 0) {
+        console.log(`⏰ Timer expired for room ${roomId}`);
+        clearTimer(roomId);
+        onExpire(); // appel de la logique de fin de round/question
       }
+
     }, 1000);
 
-    console.log(`🚀 JE VIENS DE LANCER LE TIMER ${timersByRoomId[room.uuid]}`)
+    console.log(`✅ Timer lancé pour la room ${roomId} → ID: ${timers[roomId]}`);
+  };
 
-  }
+  const clearTimer = (roomId: string) => {
+      console.log(`❌ Timer clear demandé pour la room ${roomId} → ID: ${timers[roomId]}`);
+      clearInterval(timers[roomId]);
+      delete timers[roomId];
+      delete timeLefts[roomId];
+  };
 
-  const clearTimer = (room: Room) => {
-    const timer = timersByRoomId[room.uuid];
-    if (timer) {
-      console.log("Je vais clear le timer : ", timersByRoomId[room.uuid])
-      clearInterval(timer);
-      console.log("Je VIENS de clear le timer : ", timersByRoomId[room.uuid])
-      delete timersByRoomId[room.uuid];
-    }
-  }
+  const NextRound = async (room: Room, roomId: string,  agent?: Agent, fromTimer: boolean = false) => {
 
-  const NextRound = async (room: Room, roomId: string,  agent?: Agent, shouldStartTimer: boolean = true) => {
+    clearTimer(roomId)
+    console.log(timers[roomId], timeLefts[roomId])
 
-    clearTimer(room)
-    
-    const curent_turn = GetCurentTurn(room)
+    const curent_turn = GetCurentTurn(room);
 
     if (!curent_turn) {
-      clearTimer(room)
-      return
+      io.to(roomId).emit("draft-ended", room);
+      return;
     }
 
-    const side_to_change = curent_turn.team
+    const side_to_change = curent_turn.team;
 
-    const finalAgent = agent ?? await RandomizeChamp(room)
+    const finalAgent = agent ?? await RandomizeChamp(room);
 
-    ChangeSidePickOrBan(room, side_to_change, finalAgent, curent_turn.type)
+    ChangeSidePickOrBan(room, side_to_change, finalAgent, curent_turn.type);
 
-    room.draft_session.curent_turn += 1
+    room.draft_session.curent_turn += 1;
 
     io.to(roomId).emit("agent-picked", room);
 
-    if (shouldStartTimer) {
-      startTimer(room, roomId, async () => {
-  
-        NextRound(room, roomId, undefined, true)
-          
-      });
-    }
+    const nextTurn = GetCurentTurn(room);
 
+    if (!nextTurn) {
+      console.log(`[NEXT ROUND] Aucun tour suivant : fin du draft`);
+      io.to(roomId).emit("draft-ended", room);
+      return;
+    }
+    
+    console.log(`🌀 Appel de startTimer dans NextRound pour room ${roomId}`);
+    startTimer(io, roomId, () => {
+      console.log(`[TIMER] Expiration dans room ${roomId}, sélection aléatoire`);
+      NextRound(room, roomId, undefined, false); 
+    });
   }
+
 
 
   socket.on("createRoom", ({ creatorId ,mapId, attackers, defenders }) => {
@@ -206,12 +213,12 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         
         
         io.to(roomId).emit("start-draft", room);
-        
-        startTimer(room, roomId, () => {
-          console.log(`🚀 LJE SUIS LE NOM DU TIMER DU ISREADY QUI VIENT DE IS READY ${timersByRoomId[room.uuid]}`)
-          NextRound(room, roomId)
-        })
 
+        startTimer(io, roomId, () => {
+
+          NextRound(room, roomId);
+          
+        })
 
       } else {
         // Sinon on envoie juste la mise à jour
@@ -221,19 +228,17 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     socket.on("confirm-round", ({ roomId, agent }: { roomId: string, agent: Agent}) => {
       const room = rooms[roomId];
-      clearTimer(room)
-      console.log(`🚀 JE VIENS DE CLEAR LE TIMER DE CONFIRM ROOM ${timersByRoomId[room.uuid]}`)
-
+      
       
       if (VerifyIfChampIsOpen(room, agent)) {
         socket.emit("room-error", { message: "Champion déjà pick ou ban" });
         return
       }
 
+      clearTimer(roomId)
+      console.log(`🚀 JE VIENS DE CLEAR LE TIMER DE CONFIRM ROOM ${timeLefts[room.uuid]}`)
 
-      startTimer(room, roomId, () => {
-        NextRound(room, roomId, agent, true)
-      })
+      NextRound(room, roomId, agent, false);
 
     });
 
