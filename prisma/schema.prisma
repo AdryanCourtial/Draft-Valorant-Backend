@@ -16,8 +16,8 @@ model User {
 }
 
 model Agent {
-  id                       Int       @id @default(autoincrement())
-  uuid                     String    @unique
+  id                       Int                @id @default(autoincrement())
+  uuid                     String             @unique
   displayName              String
   description              String
   developerName            String
@@ -30,9 +30,10 @@ model Agent {
   killfeedPortrait         String
   background               String
   roleId                   Int
-  role                     Role      @relation(fields: [roleId], references: [id])
+  role                     Role               @relation(fields: [roleId], references: [id])
   backgroundGradientColors String
   abilities                Ability[]
+  winrateStats             AgentWinrateStat[]
 }
 
 model Role {
@@ -66,4 +67,15 @@ model Map {
   splash                  String
   stylizedBackgroundImage String
   premierBackgroundImage  String
+}
+
+model AgentWinrateStat {
+  id      Int   @id @default(autoincrement())
+  agentId Int
+  agent   Agent @relation(fields: [agentId], references: [id])
+
+  winrate    Float
+  recordedAt DateTime @default(now())
+
+  @@index([agentId])
 }

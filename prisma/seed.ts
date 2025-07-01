@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
 import { ApiMap } from '../src/types/mapsInterface';
 import { ApiAgent, ApiRole } from '../src/types/agentInterface';
+import fs from 'fs/promises'; 
 
 const prisma = new PrismaClient();
 
@@ -103,8 +104,30 @@ async function seed() {
           premierBackgroundImage: map.premierBackgroundImage || '',
         }
       });
-    }
+  }
   
+
+  // Winrate stats Agent
+    const winrateDataRaw = await fs.readFile('./prisma/data/agentWinrateStats.json', 'utf-8');
+    const winrateData: { id: number; agent: string; winrate: number }[] = JSON.parse(winrateDataRaw);
+
+    for (const stat of winrateData) {
+      const agentInDb = await prisma.agent.findUnique({ where: { id: stat.id } });
+      if (!agentInDb) {
+        console.warn(`Agent avec id ${stat.id} (${stat.agent}) non trouvé en base, stat ignorée.`);
+        continue;
+      }
+
+      // Insert ou update la stat (ici j'assume un historique, donc création toujours)
+      await prisma.agentWinrateStat.create({
+        data: {
+          agentId: stat.id,
+          winrate: stat.winrate,
+          // recordedAt par défaut à now()
+        }
+      });
+    }
+    
     console.log('✅ Agents, abilities, roles et maps insérés avec succès.');
     await prisma.$disconnect();
   }
