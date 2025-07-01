@@ -149,24 +149,31 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
     io.to(room.uuid).emit('endGame', { roomId: room.uuid });
   });
 
-  socket.on('endGame', async ({ roomId }) => {
-    console.log(`🔴 Fin de la partie pour la room ${roomId}`);
-    const room = rooms[roomId];
-    console.log('room', room);
-    if (!room) {
-      console.error(`Room ${roomId} not found`);
-      return;
-    }
+socket.on('endGame', async ({ roomId }) => {
+  console.log(`🔴 Fin de la partie pour la room ${roomId}`);
+  const room = rooms[roomId];
+  console.log('room', room);
+  if (!room) {
+    console.error(`Room ${roomId} not found`);
+    return;
+  }
 
-    try {
-      const winrates = await computeTeamsWinrate(room);
-      console.log('Winrates:', winrates);
-      io.to(room.uuid).emit('gameResult', { winrates });
-    } catch (error) {
-      console.error('Erreur lors du calcul des winrates:', error);
-      io.to(room.id).emit('gameResult', { error: 'Erreur serveur' });
-    }
-  });
+  try {
+    const winrates = await computeTeamsWinrate(room);
+    console.log('Winrates:', winrates);
+
+    // Met à jour les winRate dans la room
+    room.attackers_side.winRate = Number(winrates.attackers);
+    room.defenders_side.winRate = Number(winrates.defenders);
+
+    console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
+    io.to(room.uuid).emit('gameResult', { winrates });
+  } catch (error) {
+    console.error('Erreur lors du calcul des winrates:', error);
+    io.to(room.id).emit('gameResult', { error: 'Erreur serveur' });
+  }
+});
+
 
 
 
