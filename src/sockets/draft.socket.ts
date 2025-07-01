@@ -1,5 +1,6 @@
 import { Server, Socket } from "socket.io";
-import { ChangeSidePickOrBan, FindFirstNullInArray, generateShortId, generateUuid, VerifyIfChampIsOpen } from "../utils/utils";
+import { FindFirstNullInArray, generateShortId, generateUuid } from "../utils/utils";
+import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfChampIsOpen } from "../utils/game";
 import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
 
@@ -7,6 +8,66 @@ let rooms: { [roomId: string]: Room } = {};
 
 export const draftSocketHandler = (io: Server, socket: Socket) => {
   console.log(`🟢 [socket] User connecté : ${socket.id}`);
+
+  const timersByRoomId: { [roomId: string]: ReturnType<typeof setInterval> } = {};
+
+
+  const TIMER_DURATION = 25
+
+  const startTimer = (roomId: string, onExpire: () => void) => {
+    clearTimer(roomId);
+
+    let timeLeft = TIMER_DURATION;
+
+    timersByRoomId[roomId] = setInterval(() => {
+        timeLeft--;
+
+        console.log(`[TIMER][${roomId}] Time left:`, timeLeft);
+        io.to(roomId).emit("timer-update", timeLeft);
+
+        if (timeLeft <= 0) {
+          clearTimer(roomId);
+          console.log(`[TIMER][${roomId}] Expired!`);
+          onExpire(); // callback pour passer automatiquement le tour ou autre
+        }
+      }, 1000);
+  }
+
+  const clearTimer = (roomId: string) => {
+    const timer = timersByRoomId[roomId];
+    if (timer) {
+      clearInterval(timer);
+      delete timersByRoomId[roomId];
+    }
+  }
+
+  const NextRound = async (room: Room, roomId: string, agent?: Agent) => {
+
+    clearTimer(room.uuid)
+    
+    const curent_turn = GetCurentTurn(room)
+
+    if (!curent_turn) {
+      clearTimer(roomId)
+      return
+    }
+
+    const side_to_change = curent_turn.team
+
+    const finalAgent = agent ?? await RandomizeChamp(room)
+
+    ChangeSidePickOrBan(room, side_to_change, finalAgent, curent_turn.type)
+
+    room.draft_session.curent_turn += 1
+
+    io.to(roomId).emit("agent-picked", room);
+
+    startTimer(roomId, async () => {
+
+      NextRound(room, roomId)
+        
+    });
+  }
 
 
   socket.on("createRoom", ({ creatorId ,mapId, attackers, defenders }) => {
@@ -42,7 +103,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
           bans: Array(2).fill(null)
         }
       };
-    
+        
       rooms[uuid] = room;
 
       console.log(room)
@@ -91,56 +152,31 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       io.to(roomId).emit("room-updated", room);
     });
 
-    socket.on("test-is-ready", ({ roomId }: { roomId: string}) => {
+    socket.on("test-is-ready", async ({ roomId }: { roomId: string}) => {
       const room = rooms[roomId];
-
-      console.log("TOUR ACTUELLE", room.draft_session.curent_turn)
-
 
       room.state = StateRoomGame.RUNNING;
       room.draft_session.curent_turn += 1
 
-      console.log("TOUR PROCHAIN", room.draft_session.curent_turn)
-
-
       io.to(roomId).emit("start-draft", room );
+
+      startTimer(roomId, () => {
+        NextRound(room, roomId)
+      })
+      
     });
 
     socket.on("confirm-round", ({ roomId, agent }: { roomId: string, agent: Agent}) => {
       const room = rooms[roomId];
 
-      const listChampSelected = room.attackers_side.agents.concat(room.attackers_side.bans, room.defenders_side.agents, room.defenders_side.bans)
-      console.log("🔴JE SUIS LARRAY DES PERSONNAGE DEJA UTILIsé", listChampSelected)
-
+      
       if (VerifyIfChampIsOpen(room, agent)) {
-        console.log("Ce Champion à déjà été pris")
-        socket.emit("error", { message: "Ce champion è déjà été pick ou ban" });
+        socket.emit("room-error", { message: "Champion déjà pick ou ban" });
         return
       }
 
-      const curent_turn = room.draft_session.draft_actions.find((value) => {
-        return value.turn === room.draft_session.curent_turn
-      })
+      NextRound(room, roomId, agent)
 
-      if (!curent_turn) return
-
-      const side_to_change = curent_turn.team
-
-      if (curent_turn.type === "ban") {
-
-        ChangeSidePickOrBan(room, side_to_change, agent, "ban")
-
-      } else {
-
-        ChangeSidePickOrBan(room, side_to_change, agent, "pick")
-
-      }
-
-      room.draft_session.curent_turn += 1
-
-      console.log("POCHAIN TOUR", room.draft_session.curent_turn)
-
-      io.to(roomId).emit("agent-picked", room );
     });
 
 
