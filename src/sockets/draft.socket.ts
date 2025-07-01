@@ -1,17 +1,82 @@
 import { Server, Socket } from "socket.io";
-import { generateShortId, generateUuid } from "../utils/utils";
-import type { Room, Side, SideTeam } from 'drafter-valorant-types';
-import { StateRoomGame } from 'drafter-valorant-types';
+import { FindFirstNullInArray, generateShortId, generateUuid } from "../utils/utils";
+import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfChampIsOpen } from "../utils/game";
+import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
+import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
 
 let rooms: { [roomId: string]: Room } = {}; 
 
 export const draftSocketHandler = (io: Server, socket: Socket) => {
   console.log(`🟢 [socket] User connecté : ${socket.id}`);
 
+  const timersByRoomId: { [roomId: string]: ReturnType<typeof setInterval> } = {};
+
+
+  const TIMER_DURATION = 25
+
+  const startTimer = (roomId: string, onExpire: () => void) => {
+    clearTimer(roomId);
+
+    let timeLeft = TIMER_DURATION;
+
+    timersByRoomId[roomId] = setInterval(() => {
+        timeLeft--;
+
+        console.log(`[TIMER][${roomId}] Time left:`, timeLeft);
+        io.to(roomId).emit("timer-update", timeLeft);
+
+        if (timeLeft <= 0) {
+          clearTimer(roomId);
+          console.log(`[TIMER][${roomId}] Expired!`);
+          onExpire(); // callback pour passer automatiquement le tour ou autre
+        }
+      }, 1000);
+  }
+
+  const clearTimer = (roomId: string) => {
+    const timer = timersByRoomId[roomId];
+    if (timer) {
+      clearInterval(timer);
+      delete timersByRoomId[roomId];
+    }
+  }
+
+  const NextRound = async (room: Room, roomId: string, agent?: Agent) => {
+
+    clearTimer(room.uuid)
+    
+    const curent_turn = GetCurentTurn(room)
+
+    if (!curent_turn) {
+      clearTimer(roomId)
+      return
+    }
+
+    const side_to_change = curent_turn.team
+
+    const finalAgent = agent ?? await RandomizeChamp(room)
+
+    ChangeSidePickOrBan(room, side_to_change, finalAgent, curent_turn.type)
+
+    room.draft_session.curent_turn += 1
+
+    io.to(roomId).emit("agent-picked", room);
+
+    startTimer(roomId, async () => {
+
+      NextRound(room, roomId)
+        
+    });
+  }
+
 
   socket.on("createRoom", ({ creatorId ,mapId, attackers, defenders }) => {
     const uuid = generateUuid();
     const public_link = process.env.FRONT_URL+  `/draft` + `/${uuid}`;
+
+    const createNewDraftSession = () => {
+      return JSON.parse(JSON.stringify(referenceOrderDraftAction));
+    };
 
     try {
       const room: Room = {
@@ -19,6 +84,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         uuid,
         public_link,
         map_selected: mapId,
+        draft_session: createNewDraftSession(),
         state: StateRoomGame.WAITING,
         creator_id: creatorId,
         spectators: [],
@@ -26,24 +92,27 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
           name: attackers,
           team_leader: 0,
           isReady: false,
-          agents: [],
-          bans: []
+          agents: Array(5).fill(null),
+          bans: Array(2).fill(null),
         },
         defenders_side: {
           name: defenders,
           team_leader: 0,
           isReady: false,
-          agents: [],
-          bans: []
+          agents: Array(5).fill(null),
+          bans: Array(2).fill(null)
         }
       };
-    
+        
       rooms[uuid] = room;
 
+      console.log(room)
       socket.join(room.uuid);
       io.to(room.uuid).emit("room-created", room);
 
-      console.log('je suis rooms', rooms);
+      // console.log('je suis rooms', rooms);
+      // console.log('je suis rooms la draft de réference', rooms);
+
       
     } catch (error) {
       console.error("Error creating room:", error);
@@ -52,14 +121,14 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
   });
 
   socket.on("getRoom", (roomId: string) => {
-    const room = rooms[roomId];
-    if (!room) {
-      socket.emit("error", { message: "Room introuvable" });
-      return;
-    }
-    socket.join(roomId);
-    console.log(`🔵 ${socket.id} a rejoint la room ${roomId}`)
-    socket.emit("room-updated", room)
+      const room = rooms[roomId];
+      if (!room) {
+        socket.emit("error", { message: "Room introuvable" });
+        return;
+      }
+      socket.join(roomId);
+      console.log(`🔵 ${socket.id} a rejoint la room ${roomId}`)
+      socket.emit("room-updated", room)
     });
   
     
@@ -126,11 +195,24 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       if (room.attackers_side.isReady && room.defenders_side.isReady) {
         room.state = StateRoomGame.RUNNING;
         console.log(`🚀 La partie démarre dans la room ${roomId}`);
-        io.to(roomId).emit("room-updated", room);
+        io.to(roomId).emit("start-draft", room);
       } else {
         // Sinon on envoie juste la mise à jour
         io.to(roomId).emit("room-updated", room);
       }
+    });
+
+    socket.on("confirm-round", ({ roomId, agent }: { roomId: string, agent: Agent}) => {
+      const room = rooms[roomId];
+
+      
+      if (VerifyIfChampIsOpen(room, agent)) {
+        socket.emit("room-error", { message: "Champion déjà pick ou ban" });
+        return
+      }
+
+      NextRound(room, roomId, agent)
+
     });
 
 
