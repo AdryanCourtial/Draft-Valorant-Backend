@@ -13,6 +13,7 @@ import cookieParser from 'cookie-parser';
 import http from 'http';
 import { Server } from 'socket.io';
 import { draftSocketHandler } from './sockets/draft.socket';
+import historyRouter from './routes/historyRoute';
 
 
 
@@ -49,6 +50,7 @@ mainRouter.use('/map', mapRouter);
 mainRouter.use('/role', roleRouter);
 mainRouter.use('/user', userRouter);
 mainRouter.use('/auth', authRouter);
+mainRouter.use('/history', historyRouter);
 mainRouter.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.use('/api', mainRouter);

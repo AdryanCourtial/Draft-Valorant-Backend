@@ -22,6 +22,12 @@ export const getUserInfo = async (req: Request, res: Response): Promise<void> =>
                 username: true,
                 email: true,
                 createdAt: true,
+                drafts: {
+                  select: {
+                  uuid: true,
+                  createdAt: true,
+                  }
+                }
             }
         });
 

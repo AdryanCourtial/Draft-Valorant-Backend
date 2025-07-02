@@ -13,6 +13,8 @@ model User {
   username  String
   password  String
   createdAt DateTime @default(now())
+  drafts       DraftHistory[]
+
 }
 
 model Agent {
@@ -105,4 +107,18 @@ model TopAgentWinrate {
 
   @@index([mapStatId])
   @@index([agentId])
+}
+
+model DraftHistory {
+  id            Int      @id @default(autoincrement())
+  uuid          String   @unique
+  publicLink    String
+  creatorId     Int
+  creator       User     @relation(fields: [creatorId], references: [id])
+  mapSelected   Int
+  state         String
+  attackersSide Json
+  defendersSide Json
+  draftSession  Json
+  createdAt     DateTime @default(now())
 }

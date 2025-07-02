@@ -4,6 +4,8 @@ import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfBanRoleIsTa
 import type { Agent, Room, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
 import { computeTeamsWinrate } from "../utils/calculWinRate";
+import { createMockRoom } from "../types/mockInterface";
+import { prisma } from "../lib/prisma";
 
 let rooms: { [roomId: string]: Room } = {}; 
 const timers: { [roomId: string]: NodeJS.Timeout } = {};
@@ -268,6 +270,20 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       // Met à jour les winRate dans la room
       room.attackers_side.winRate = Number(winrates.attackers);
       room.defenders_side.winRate = Number(winrates.defenders);
+
+      await prisma.draftHistory.create({
+        data: {
+          uuid: room.uuid,
+          publicLink: room.public_link,
+          creatorId: room.creator_id,
+          mapSelected: parseInt(room.map_selected, 10),      
+          state: room.state,
+          attackersSide: JSON.parse(JSON.stringify(room.attackers_side)),
+          defendersSide: JSON.parse(JSON.stringify(room.defenders_side)),
+          draftSession: JSON.parse(JSON.stringify(room.draft_session))
+        }
+      });
+
 
       console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
       io.to(room.uuid).emit('room-updated', room);

@@ -176,7 +176,21 @@
                       "id": { "type": "integer" },
                       "username": { "type": "string" },
                       "email": { "type": "string", "format": "email" },
-                      "createdAt": { "type": "string", "format": "date-time" }
+                      "createdAt": { "type": "string", "format": "date-time" },
+                      "drafts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "uuid": { "type": "string" },
+                            "createdAt": { "type": "string", "format": "date-time" }
+                          },
+                          "example": {
+                            "uuid": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdAt": "2025-06-26T08:57:01.367Z"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -376,7 +390,20 @@
             "id": { "type": "integer" },
             "username": { "type": "string" },
             "email": { "type": "string" },
-            "createdAt": { "type": "string", "format": "date-time" }
+            "createdAt": { "type": "string", "format": "date-time" },
+            "drafts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "uuid": { "type": "string" },
+                  "createdAt": { "type": "string", "format": "date-time" }
+                },
+                "example": {
+                  "uuid": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
           }
         },
         "UserLogin": {
