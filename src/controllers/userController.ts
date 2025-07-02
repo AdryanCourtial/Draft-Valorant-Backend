@@ -45,8 +45,6 @@ export const getUserInfo = async (req: Request, res: Response): Promise<void> =>
 
 // Register a new user
 export const register = async (req: Request, res: Response): Promise<void> => {
-    console.log('BODY:', req.body);
-
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {

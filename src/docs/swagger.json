@@ -318,6 +318,36 @@
             }
           }
         }
+      },
+      "/history/{uuid}": {
+        "get": {
+          "summary": "Récupérer un historique de draft par UUID",
+          "tags": ["History"],
+          "parameters": [
+            {
+              "name": "uuid",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "UUID du draft"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Historique récupéré avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Draft"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Historique non trouvé"
+            }
+          }
+        }
       }
     },
     "components": {
@@ -427,6 +457,70 @@
               }
             }
           }
+        },
+        "Draft": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string", "description": "Identifiant unique du draft" },
+            "publicLink": { "type": "string", "description": "Lien public du draft" },
+            "mapSelected": { "type": "integer", "description": "ID de la map sélectionnée" },
+            "state": { "type": "string", "description": "État de la partie" },
+            "attackersSide": {
+              "type": "object",
+              "description": "Informations sur le camp des attaquants",
+              "properties": {
+                "name": { "type": "string" },
+                "team_leader": { "type": "string" },
+                "isReady": { "type": "boolean" },
+                "winRate": { "type": "number" },
+                "agents": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "bans": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                }
+              }
+            },
+            "defendersSide": {
+              "type": "object",
+              "description": "Informations sur le camp des défenseurs",
+              "properties": {
+                "name": { "type": "string" },
+                "team_leader": { "type": "string" },
+                "isReady": { "type": "boolean" },
+                "winRate": { "type": "number" },
+                "agents": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "bans": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                }
+              }
+            },
+            "draftSession": {
+              "type": "object",
+              "description": "Informations sur la session de draft"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Date de création du draft"
+            }
+          },
+          "required": [
+            "uuid",
+            "publicLink",
+            "mapSelected",
+            "state",
+            "attackersSide",
+            "defendersSide",
+            "draftSession",
+            "createdAt"
+          ]
         }
       }
     }
