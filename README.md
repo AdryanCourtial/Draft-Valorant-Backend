@@ -1,34 +1,63 @@
-# Valorant Draft API
+# Valorant Draft - API
 
-## Installation
+Ce dépôt contient l’API backend de l’application **Valorant Draft**.
 
-1. Installer les dépendances :
+---
+
+## ⚙️ Installation
+
+1. Installe les dépendances :
 
 ```bash
-npm i
+npm install
+```
 
+2. Génère le client Prisma :
+
+```bash
 npx prisma generate
+```
 
+3. Remplis la base avec les données de test :
+
+```bash
 npx ts-node prisma/seed.ts
-
 ```
 
-## Ajouter les tables en base sans historique
-```
+---
+
+## 🗄️ Synchroniser la base de données
+
+Pour créer ou mettre à jour les tables **sans historique de migration** :
+
+```bash
 npx prisma db push
 ```
 
-## Voir le swagger
+---
 
-```
-http://localhost:3000/api-docs/
-```
+## 📜 Documentation Swagger
 
-## Fichier Env
+Accède à la documentation de l’API :
 
-```
+[http://localhost:3000/api/api-docs/](http://localhost:3000/api/api-docs/)
+
+---
+
+## 🔑 Variables d’environnement
+
+Crée un fichier `.env` à la racine du projet avec le contenu suivant :
+
+```env
 DATABASE_URL="mysql://root@localhost:3306/valorant_draft"
 JWT_SECRET="ton_jwt_secret"
 FRONT_URL="http://localhost:5173"
-
 ```
+
+---
+
+## ✅ Bon à savoir
+
+- **Prisma** est utilisé pour gérer la base MySQL.
+- **Swagger** est disponible à `/api-docs/` pour explorer les endpoints.
+
