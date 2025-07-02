@@ -5,9 +5,11 @@ import { prisma } from '../lib/prisma';
 export async function computeTeamsWinrate(room: Room) {
   const mapId = room.map_selected;
 
+  console.log("JE SUIS LE MAP ID", mapId)
+
   // 1️⃣ Récupère la map
-  const map = await prisma.map.findUnique({
-    where: { id: mapId },
+  const map = await prisma.map.findFirst({
+    where: { id: parseInt(mapId) },
     include: {
       mapWinrateStats: {
         orderBy: { recordedAt: 'desc' },

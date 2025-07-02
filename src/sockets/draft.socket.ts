@@ -3,9 +3,7 @@ import { FindFirstNullInArray, generateShortId, generateUuid } from "../utils/ut
 import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfBanRoleIsTaken, VerifyIfChampIsOpen } from "../utils/game";
 import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
-import { clear } from "console";
 import { computeTeamsWinrate } from "../utils/calculWinRate";
-import { createMockRoom } from "../types/mockInterface";
 
 let rooms: { [roomId: string]: Room } = {}; 
 const timers: { [roomId: string]: NodeJS.Timeout } = {};
@@ -15,7 +13,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
   console.log(`🟢 [socket] User connecté : ${socket.id}`);
 
 
-  const TIMER_DURATION = 10
+  const TIMER_DURATION = 25
 
   const startTimer = (io: Server, roomId: string, onExpire: () => void) => {
     clearTimer(roomId); // sécurité
@@ -68,6 +66,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     if (!nextTurn) {
       console.log(`[NEXT ROUND] Aucun tour suivant : fin du draft`);
+      room.state = StateRoomGame.FINISHED
       io.to(roomId).emit("draft-ended", room);
       return;
     }
@@ -100,6 +99,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         attackers_side: {
           name: attackers,
           team_leader: 0,
+          winRate: 0,
           isReady: false,
           agents: Array(5).fill(null),
           bans: Array(2).fill(null),
@@ -107,6 +107,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         defenders_side: {
           name: defenders,
           team_leader: 0,
+          winRate: 0,
           isReady: false,
           agents: Array(5).fill(null),
           bans: Array(2).fill(null)
@@ -236,7 +237,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       }
 
       if (!curent_round) {
-        room.state = StateRoomGame.FINISHED
         return
       }
 
@@ -270,10 +270,10 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       room.defenders_side.winRate = Number(winrates.defenders);
 
       console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
-      io.to(room.uuid).emit('gameResult', { winrates });
+      io.to(room.uuid).emit('room-updated', room);
     } catch (error) {
       console.error('Erreur lors du calcul des winrates:', error);
-      io.to(room.id).emit('gameResult', { error: 'Erreur serveur' });
+      io.to(room.id).emit('error-room', { message: 'Erreur serveur' });
     }
   });
 
