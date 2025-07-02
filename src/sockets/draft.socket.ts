@@ -285,7 +285,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
           uuid: room.uuid,
           publicLink: room.public_link,
           creatorId: room.creator_id,
-          mapSelected: room.map_selected,
+          mapSelected: parseInt(room.map_selected, 10),      
           state: room.state,
           attackersSide: JSON.parse(JSON.stringify(room.attackers_side)),
           defendersSide: JSON.parse(JSON.stringify(room.defenders_side)),
