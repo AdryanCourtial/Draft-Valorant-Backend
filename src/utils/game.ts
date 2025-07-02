@@ -34,6 +34,15 @@ export const GetCurentTurn = (room: Room) => {
     })
 }
 
+export const VerifyIfBanRoleIsTaken = (room: Room, agent: Agent): boolean => {
+    const curent_turn = GetCurentTurn(room)
+
+    if (!curent_turn) return false
+
+    return room[curent_turn?.team].bans.some((value) => value?.roleId === agent.roleId)
+
+}
+
 export const RandomizeChamp = async (room: Room): Promise<Agent> => {
 
     const champion_already_pick = ArrayOfChampRegistered(room)
@@ -46,7 +55,6 @@ export const RandomizeChamp = async (room: Room): Promise<Agent> => {
         }
 
         array_id.push(value?.id)
-        console.log(array_id)
     })
 
     const all_champion = await prisma.agent.findMany()
