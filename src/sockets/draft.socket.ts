@@ -4,6 +4,8 @@ import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfChampIsOpen
 import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
 import { clear } from "console";
+import { computeTeamsWinrate } from "../utils/calculWinRate";
+import { createMockRoom } from "../types/mockInterface";
 
 let rooms: { [roomId: string]: Room } = {}; 
 const timers: { [roomId: string]: NodeJS.Timeout } = {};
@@ -100,6 +102,10 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         state: StateRoomGame.WAITING,
         creator_id: creatorId,
         spectators: [],
+        draft_session: {
+          curent_turn: 0,
+          draft_actions: []
+        },
         attackers_side: {
           name: attackers,
           team_leader: 0,
@@ -241,6 +247,42 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       NextRound(room, roomId, agent, false);
 
     });
+
+  
+  socket.on('mockRoom', ( ) => {
+    const room = createMockRoom();
+    console.log('Mock room:', room);
+    rooms[room.uuid] = room; // Simule l'ajout de la room
+    console.log(rooms);
+    socket.join(room.uuid);
+    io.to(room.uuid).emit('endGame', { roomId: room.uuid });
+  });
+
+socket.on('endGame', async ({ roomId }) => {
+  console.log(`🔴 Fin de la partie pour la room ${roomId}`);
+  const room = rooms[roomId];
+  console.log('room', room);
+  if (!room) {
+    console.error(`Room ${roomId} not found`);
+    return;
+  }
+
+  try {
+    const winrates = await computeTeamsWinrate(room);
+    console.log('Winrates:', winrates);
+
+    // Met à jour les winRate dans la room
+    room.attackers_side.winRate = Number(winrates.attackers);
+    room.defenders_side.winRate = Number(winrates.defenders);
+
+    console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
+    io.to(room.uuid).emit('gameResult', { winrates });
+  } catch (error) {
+    console.error('Erreur lors du calcul des winrates:', error);
+    io.to(room.id).emit('gameResult', { error: 'Erreur serveur' });
+  }
+});
+
 
 
 

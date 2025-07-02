@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
 import { ApiMap } from '../src/types/mapsInterface';
 import { ApiAgent, ApiRole } from '../src/types/agentInterface';
+import fs from 'fs/promises'; 
 
 const prisma = new PrismaClient();
 
@@ -82,11 +83,17 @@ async function seed() {
     const mapRes = await fetch('https://valorant-api.com/v1/maps');
     const mapJson = await mapRes.json() as { data: ApiMap[] };
 
-    const maps = mapJson.data;
-  
+    const excludedUuids = [
+      '1f10dab3-4294-3827-fa35-c2aa00213cf3',
+      'ee613ee9-28b7-4beb-9666-08db13bb2244',
+      '5914d1e0-40c4-cfdd-6b88-eba06347686c'
+    ];
+
+    const maps = mapJson.data.filter(map => !excludedUuids.includes(map.uuid));
+
     for (const map of maps) {
       if (!map.uuid || !map.displayName || !map.splash) continue;
-  
+
       await prisma.map.upsert({
         where: { uuid: map.uuid },
         update: {},
@@ -104,8 +111,76 @@ async function seed() {
         }
       });
     }
+
   
-    console.log('✅ Agents, abilities, roles et maps insérés avec succès.');
+
+  // Winrate stats Agent
+    const winrateDataRaw = await fs.readFile('./prisma/data/agentWinrateStats.json', 'utf-8');
+    const winrateData: { id: number; agent: string; winrate: number }[] = JSON.parse(winrateDataRaw);
+
+    for (const stat of winrateData) {
+      const agentInDb = await prisma.agent.findUnique({ where: { id: stat.id } });
+      if (!agentInDb) {
+        console.warn(`Agent avec id ${stat.id} (${stat.agent}) non trouvé en base, stat ignorée.`);
+        continue;
+      }
+
+      // Insert ou update la stat (ici j'assume un historique, donc création toujours)
+      await prisma.agentWinrateStat.create({
+        data: {
+          agentId: stat.id,
+          winrate: stat.winrate,
+          // recordedAt par défaut à now()
+        }
+      });
+    }
+    
+
+  // Winrate stats Map
+    const mapWinrateRaw = await fs.readFile('./prisma/data/mapWinrateStats.json', 'utf-8');
+    const mapWinrateData: {
+        map: string;
+        mapId: number;
+        "atk_win%": number;
+        "def_win%": number;
+       "top_agents_win%": { agent: string; agentId: number; winrate: number }[];
+      }[] = JSON.parse(mapWinrateRaw);
+
+      for (const stat of mapWinrateData) {
+        // Trouver la map en base
+        const mapInDb = await prisma.map.findUnique({ where: { id: stat.mapId } });
+        if (!mapInDb) {
+          console.warn(`Map avec id ${stat.mapId} (${stat.map}) non trouvée en base, stat ignorée.`);
+          continue;
+        }
+
+        // Créer la stat map
+        const mapStat = await prisma.mapWinrateStat.create({
+          data: {
+            mapId: stat.mapId,
+            atkWinrate: stat["atk_win%"],
+            defWinrate: stat["def_win%"],
+          }
+        });
+
+        // Créer les top agents associés
+        for (const topAgent of stat["top_agents_win%"]) {
+          const agentInDb = await prisma.agent.findUnique({ where: { id: topAgent.agentId } });
+          if (!agentInDb) {
+            console.warn(`Agent avec id ${topAgent.agentId} (${topAgent.agent}) non trouvé en base, top agent ignoré.`);
+            continue;
+          }
+          await prisma.topAgentWinrate.create({
+            data: {
+              mapStatId: mapStat.id,
+              agentId: topAgent.agentId,
+              winrate: topAgent.winrate,
+            }
+          });
+        }
+      }
+    
+    console.log('✅ Agents, abilities, roles, agents winrate et maps insérés avec succès.');
     await prisma.$disconnect();
   }
   
