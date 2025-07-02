@@ -252,16 +252,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     });
 
-  socket.on('mockRoom', ( ) => {
-    const room = createMockRoom();
-    console.log('Mock room:', room);
-    rooms[room.uuid] = room; // Simule l'ajout de la room
-    console.log(rooms);
-    socket.join(room.uuid);
-    io.to(room.uuid).emit('endGame', { roomId: room.uuid });
-  });
-
-
 
   socket.on('endGame', async ({ roomId }) => {
     console.log(`🔴 Fin de la partie pour la room ${roomId}`);
