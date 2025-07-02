@@ -110,15 +110,15 @@ model TopAgentWinrate {
 }
 
 model DraftHistory {
-  id            Int      @id @default(autoincrement())
-  uuid          String   @unique
-  publicLink    String
-  creatorId     Int
-  creator       User     @relation(fields: [creatorId], references: [id])
-  mapSelected   Int
-  state         String
-  attackersSide Json
-  defendersSide Json
-  draftSession  Json
-  createdAt     DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique
+  public_link     String
+  creatorId       Int
+  creator         User     @relation(fields: [creatorId], references: [id])
+  map_selected    Int
+  state           String
+  attackers_side  Json
+  defenders_side  Json
+  draft_session   Json
+  createdAt       DateTime @default(now())
 }

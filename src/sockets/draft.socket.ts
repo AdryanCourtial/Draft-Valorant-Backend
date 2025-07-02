@@ -255,9 +255,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
 
   socket.on('endGame', async ({ roomId }) => {
-    console.log(`🔴 Fin de la partie pour la room ${roomId}`);
     const room = rooms[roomId];
-    console.log('room', room);
     if (!room) {
       console.error(`Room ${roomId} not found`);
       return;
@@ -274,16 +272,15 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       await prisma.draftHistory.create({
         data: {
           uuid: room.uuid,
-          publicLink: room.public_link,
+          public_link: room.public_link,
           creatorId: room.creator_id,
-          mapSelected: parseInt(room.map_selected, 10),      
+          map_selected: parseInt(room.map_selected, 10),      
           state: room.state,
-          attackersSide: JSON.parse(JSON.stringify(room.attackers_side)),
-          defendersSide: JSON.parse(JSON.stringify(room.defenders_side)),
-          draftSession: JSON.parse(JSON.stringify(room.draft_session))
+          attackers_side: JSON.parse(JSON.stringify(room.attackers_side)),
+          defenders_side: JSON.parse(JSON.stringify(room.defenders_side)),
+          draft_session: JSON.parse(JSON.stringify(room.draft_session))
         }
       });
-
 
       console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
       io.to(room.uuid).emit('room-updated', room);
