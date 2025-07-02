@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { FindFirstNullInArray, generateShortId, generateUuid } from "../utils/utils";
-import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfChampIsOpen } from "../utils/game";
+import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfBanRoleIsTaken, VerifyIfChampIsOpen } from "../utils/game";
 import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
 import { clear } from "console";
@@ -26,7 +26,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       io.to(roomId).emit("timer-update", timeLefts[roomId]);
       
       if (timeLefts[roomId] <= 0) {
-        console.log(`⏰ Timer expired for room ${roomId}`);
         clearTimer(roomId);
         onExpire(); // appel de la logique de fin de round/question
       }
@@ -37,7 +36,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
   };
 
   const clearTimer = (roomId: string) => {
-      console.log(`❌ Timer clear demandé pour la room ${roomId} → ID: ${timers[roomId]}`);
       clearInterval(timers[roomId]);
       delete timers[roomId];
       delete timeLefts[roomId];
@@ -46,7 +44,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
   const NextRound = async (room: Room, roomId: string,  agent?: Agent, fromTimer: boolean = false) => {
 
     clearTimer(roomId)
-    console.log(timers[roomId], timeLefts[roomId])
 
     const curent_turn = GetCurentTurn(room);
 
@@ -73,9 +70,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       return;
     }
     
-    console.log(`🌀 Appel de startTimer dans NextRound pour room ${roomId}`);
     startTimer(io, roomId, () => {
-      console.log(`[TIMER] Expiration dans room ${roomId}, sélection aléatoire`);
       NextRound(room, roomId, undefined, false); 
     });
   }
@@ -121,10 +116,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       socket.join(room.uuid);
       io.to(room.uuid).emit("room-created", room);
 
-      // console.log('je suis rooms', rooms);
-      // console.log('je suis rooms la draft de réference', rooms);
-
-      
     } catch (error) {
       console.error("Error creating room:", error);
       socket.emit("room-error", { message: "Erreur lors de la création de la room" });
@@ -201,23 +192,18 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
       room[side].isReady = true;
 
-      console.log(`✅ ${side} est prêt dans la room ${roomId}`);
-
       // Si les deux côtés sont prêts => on passe l'état en RUNNING
       if (room.attackers_side.isReady && room.defenders_side.isReady) {
 
         room.state = StateRoomGame.RUNNING;
         room.draft_session.curent_turn += 1
 
-        console.log(`🚀 La partie démarre dans la room ${roomId}`);
-        
-        
         io.to(roomId).emit("start-draft", room);
 
         startTimer(io, roomId, () => {
 
           NextRound(room, roomId);
-          
+
         })
 
       } else {
@@ -226,7 +212,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       }
     });
 
-    socket.on("confirm-round", ({ roomId, agent }: { roomId: string, agent: Agent}) => {
+    socket.on("confirm-round", ({ roomId, agent, userId }: { roomId: string, agent: Agent, userId?: number}) => {
       const room = rooms[roomId];
       
       
@@ -235,8 +221,29 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         return
       }
 
+      if (!userId) {
+        socket.emit("room-error", { message: "Seul un utilisateur connecté peut pick" });
+        return
+      }
+
+      const curent_round = GetCurentTurn(room)
+
+      if (curent_round?.type === "ban" && VerifyIfBanRoleIsTaken(room, agent)){
+        socket.emit("room-error", { message: "Vous avez déjà ban personnages de ce rôle " });
+        return
+      }
+
+      if (!curent_round) {
+        room.state = StateRoomGame.FINISHED
+        return
+      }
+
+      if (room[curent_round?.team].team_leader !== userId) {
+        socket.emit("room-error", { message: "Ce n'est pas à votre tour de jouer" });
+        return
+      }
+
       clearTimer(roomId)
-      console.log(`🚀 JE VIENS DE CLEAR LE TIMER DE CONFIRM ROOM ${timeLefts[room.uuid]}`)
 
       NextRound(room, roomId, agent, false);
 
