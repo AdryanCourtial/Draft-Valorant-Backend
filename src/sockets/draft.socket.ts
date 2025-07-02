@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
-import { FindFirstNullInArray, generateShortId, generateUuid } from "../utils/utils";
+import { generateShortId, generateUuid } from "../utils/utils";
 import { ChangeSidePickOrBan, GetCurentTurn, RandomizeChamp, VerifyIfBanRoleIsTaken, VerifyIfChampIsOpen } from "../utils/game";
-import type { Agent, Room, Side, SideTeam } from 'drafter-valorant-types';
+import type { Agent, Room, SideTeam } from 'drafter-valorant-types';
 import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types';
 import { computeTeamsWinrate } from "../utils/calculWinRate";
 
