@@ -6,6 +6,7 @@ import { referenceOrderDraftAction, StateRoomGame } from 'drafter-valorant-types
 import { clear } from "console";
 import { computeTeamsWinrate } from "../utils/calculWinRate";
 import { createMockRoom } from "../types/mockInterface";
+import { prisma } from "../lib/prisma";
 
 let rooms: { [roomId: string]: Room } = {}; 
 const timers: { [roomId: string]: NodeJS.Timeout } = {};
@@ -251,6 +252,16 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     });
 
+  socket.on('mockRoom', ( ) => {
+    const room = createMockRoom();
+    console.log('Mock room:', room);
+    rooms[room.uuid] = room; // Simule l'ajout de la room
+    console.log(rooms);
+    socket.join(room.uuid);
+    io.to(room.uuid).emit('endGame', { roomId: room.uuid });
+  });
+
+
 
   socket.on('endGame', async ({ roomId }) => {
     console.log(`🔴 Fin de la partie pour la room ${roomId}`);
@@ -268,6 +279,20 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       // Met à jour les winRate dans la room
       room.attackers_side.winRate = Number(winrates.attackers);
       room.defenders_side.winRate = Number(winrates.defenders);
+
+      await prisma.draftHistory.create({
+        data: {
+          uuid: room.uuid,
+          publicLink: room.public_link,
+          creatorId: room.creator_id,
+          mapSelected: room.map_selected,
+          state: room.state,
+          attackersSide: JSON.parse(JSON.stringify(room.attackers_side)),
+          defendersSide: JSON.parse(JSON.stringify(room.defenders_side)),
+          draftSession: JSON.parse(JSON.stringify(room.draft_session))
+        }
+      });
+
 
       console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
       io.to(room.uuid).emit('gameResult', { winrates });

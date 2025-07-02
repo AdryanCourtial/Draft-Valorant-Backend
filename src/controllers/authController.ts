@@ -16,16 +16,23 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
   
   try {
-      console.log("Login attempt with email:", email);
-      const user = await prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: {
+          drafts: {
+            select: {
+              uuid: true,
+              createdAt: true
+            }
+          }
+        }
+      });
   
       if (!user) {
           res.status(401).json({ message: "Invalid email or password" });
           return;
     }
-    
-      console.log("User found:", user.id);
-  
+      
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
           res.status(401).json({ message: "Invalid email or password" });
@@ -33,9 +40,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       }
   
     const token = generateToken(user.id, user.email);
-    
-      console.log("Token generated for user:", user.id);
-        
+            
       res.cookie("session", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", 
