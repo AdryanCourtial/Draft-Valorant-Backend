@@ -12,8 +12,6 @@ const timers: { [roomId: string]: NodeJS.Timeout } = {};
 const timeLefts: { [roomId: string]: number } = {};
 
 export const draftSocketHandler = (io: Server, socket: Socket) => {
-  console.log(`🟢 [socket] User connecté : ${socket.id}`);
-
 
   const TIMER_DURATION = 25
 
@@ -34,7 +32,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     }, 1000);
 
-    console.log(`✅ Timer lancé pour la room ${roomId} → ID: ${timers[roomId]}`);
   };
 
   const clearTimer = (roomId: string) => {
@@ -67,7 +64,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
     const nextTurn = GetCurentTurn(room);
 
     if (!nextTurn) {
-      console.log(`[NEXT ROUND] Aucun tour suivant : fin du draft`);
       room.state = StateRoomGame.FINISHED
       io.to(roomId).emit("draft-ended", room);
       return;
@@ -122,7 +118,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       io.to(room.uuid).emit("room-created", room);
 
     } catch (error) {
-      console.error("Error creating room:", error);
       socket.emit("room-error", { message: "Erreur lors de la création de la room" });
     }
   });
@@ -134,7 +129,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         return;
       }
       socket.join(roomId);
-      console.log(`🔵 ${socket.id} a rejoint la room ${roomId}`)
       socket.emit("room-updated", room)
     });
   
@@ -175,7 +169,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       room[side].team_leader = userId;
 
       socket.join(roomId);
-      console.log(`✅ L'utilisateur ${userId} a rejoint ${side} dans la room ${roomId}`);
 
       io.to(roomId).emit("room-updated", room);
     });
@@ -263,7 +256,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     try {
       const winrates = await computeTeamsWinrate(room);
-      console.log('Winrates:', winrates);
 
       // Met à jour les winRate dans la room
       room.attackers_side.winRate = Number(winrates.attackers);
@@ -281,8 +273,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
           draft_session: JSON.parse(JSON.stringify(room.draft_session))
         }
       });
-
-      console.log(`🔵 Envoi des winrates mis à jour pour la room `, room);
+      
       io.to(room.uuid).emit('room-updated', room);
     } catch (error) {
       console.error('Erreur lors du calcul des winrates:', error);
@@ -294,7 +285,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
 
 socket.on("disconnect", () => {
-  console.log(`🔴 [socket] ${socket.id} déconnecté`);
 
   // Parcourt toutes les rooms
   // for (const roomId in rooms) {
