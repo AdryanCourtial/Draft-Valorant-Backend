@@ -13,6 +13,7 @@ const timeLefts: { [roomId: string]: number } = {};
 
 export const draftSocketHandler = (io: Server, socket: Socket) => {
 
+
   const TIMER_DURATION = 25
 
   const startTimer = (io: Server, roomId: string, onExpire: () => void) => {
@@ -118,6 +119,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       io.to(room.uuid).emit("room-created", room);
 
     } catch (error) {
+      console.error("Error creating room:", error);
       socket.emit("room-error", { message: "Erreur lors de la création de la room" });
     }
   });
@@ -273,10 +275,10 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
           draft_session: JSON.parse(JSON.stringify(room.draft_session))
         }
       });
-      
+
+
       io.to(room.uuid).emit('room-updated', room);
     } catch (error) {
-      console.error('Erreur lors du calcul des winrates:', error);
       io.to(room.id).emit('error-room', { message: 'Erreur serveur' });
     }
   });
@@ -286,43 +288,43 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
 socket.on("disconnect", () => {
 
-  // Parcourt toutes les rooms
-  // for (const roomId in rooms) {
-  //   const room = rooms[roomId];
+    // Parcourt toutes les rooms
+    // for (const roomId in rooms) {
+    //   const room = rooms[roomId];
 
-  //   let hasChanged = false;
+    //   let hasChanged = false;
 
-  //   // Vérifie si le disconnect est le leader attackers
-  //   if (room.attackers_side.team_leader_socket_id === socket.id) {
-  //     room.attackers_side.team_leader = 0;
-  //     room.attackers_side.isReady = false;
-  //     room.attackers_side.team_leader_socket_id = null;
-  //     console.log(`⚠️ Leader attackers parti dans ${roomId}`);
-  //     hasChanged = true;
-  //   }
+    //   // Vérifie si le disconnect est le leader attackers
+    //   if (room.attackers_side.team_leader_socket_id === socket.id) {
+    //     room.attackers_side.team_leader = 0;
+    //     room.attackers_side.isReady = false;
+    //     room.attackers_side.team_leader_socket_id = null;
+    //     console.log(`⚠️ Leader attackers parti dans ${roomId}`);
+    //     hasChanged = true;
+    //   }
 
-  //   // Vérifie si le disconnect est le leader defenders
-  //   if (room.defenders_side.team_leader_socket_id === socket.id) {
-  //     room.defenders_side.team_leader = 0;
-  //     room.defenders_side.isReady = false;
-  //     room.defenders_side.team_leader_socket_id = null;
-  //     console.log(`⚠️ Leader defenders parti dans ${roomId}`);
-  //     hasChanged = true;
-  //   }
+    //   // Vérifie si le disconnect est le leader defenders
+    //   if (room.defenders_side.team_leader_socket_id === socket.id) {
+    //     room.defenders_side.team_leader = 0;
+    //     room.defenders_side.isReady = false;
+    //     room.defenders_side.team_leader_socket_id = null;
+    //     console.log(`⚠️ Leader defenders parti dans ${roomId}`);
+    //     hasChanged = true;
+    //   }
 
-  //   // Vérifie si c’est le créateur
-  //   if (room.creator_socket_id === socket.id) {
-  //     console.log(`🗑️ Suppression de la room ${roomId} car créateur parti`);
-  //     delete rooms[roomId];
-  //     io.to(roomId).emit("room-deleted", { message: "Le créateur a quitté la room." });
-  //     continue; // On continue car la room est supprimée
-  //   }
+    //   // Vérifie si c’est le créateur
+    //   if (room.creator_socket_id === socket.id) {
+    //     console.log(`🗑️ Suppression de la room ${roomId} car créateur parti`);
+    //     delete rooms[roomId];
+    //     io.to(roomId).emit("room-deleted", { message: "Le créateur a quitté la room." });
+    //     continue; // On continue car la room est supprimée
+    //   }
 
-  //   // Si un changement, notifier les autres joueurs
-  //   if (hasChanged) {
-  //     io.to(roomId).emit("room-updated", room);
-  //   }
-  // }
+    //   // Si un changement, notifier les autres joueurs
+    //   if (hasChanged) {
+    //     io.to(roomId).emit("room-updated", room);
+    //   }
+    // }
 });
 
 };
