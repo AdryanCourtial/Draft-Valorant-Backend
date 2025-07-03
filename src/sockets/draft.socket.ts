@@ -94,7 +94,6 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
         draft_session: createNewDraftSession(),
         state: StateRoomGame.WAITING,
         creator_id: creatorId,
-        spectators: [],
         attackers_side: {
           name: attackers,
           team_leader: 0,
