@@ -8,8 +8,117 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  username String
-  password String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String
+  password  String
+  createdAt DateTime @default(now())
+  drafts       DraftHistory[]
+
+}
+
+model Agent {
+  id                       Int                @id @default(autoincrement())
+  uuid                     String             @unique
+  displayName              String
+  description              String
+  developerName            String
+  releaseDate              DateTime
+  displayIcon              String
+  displayIconSmall         String
+  bustPortrait             String
+  fullPortrait             String
+  fullPortraitV2           String
+  killfeedPortrait         String
+  background               String
+  roleId                   Int
+  role                     Role               @relation(fields: [roleId], references: [id])
+  backgroundGradientColors String
+  abilities                Ability[]
+  winrateStats             AgentWinrateStat[]
+  topWinrates TopAgentWinrate[]
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique
+  displayName String
+  description String
+  displayIcon String
+  agents      Agent[]
+}
+
+model Ability {
+  id          Int    @id @default(autoincrement())
+  agentId     Int
+  agent       Agent  @relation(fields: [agentId], references: [id])
+  slot        String
+  displayName String
+  description String
+  displayIcon String
+}
+
+model Map {
+  id                      Int     @id @default(autoincrement())
+  uuid                    String  @unique
+  displayName             String
+  tacticalDescription     String?
+  coordinates             String?
+  displayIcon             String
+  listViewIcon            String
+  listViewIconTall        String
+  splash                  String
+  stylizedBackgroundImage String
+  premierBackgroundImage  String
+  mapWinrateStats         MapWinrateStat[]
+}
+
+model AgentWinrateStat {
+  id      Int   @id @default(autoincrement())
+  agentId Int
+  agent   Agent @relation(fields: [agentId], references: [id])
+
+  winrate    Float
+  recordedAt DateTime @default(now())
+
+  @@index([agentId])
+}
+
+model MapWinrateStat {
+  id         Int      @id @default(autoincrement())
+  mapId      Int
+  map        Map      @relation(fields: [mapId], references: [id])
+  atkWinrate Float
+  defWinrate Float
+  recordedAt DateTime @default(now())
+  topAgentWinrates TopAgentWinrate[]
+
+  @@index([mapId])
+}
+
+
+model TopAgentWinrate {
+  id         Int      @id @default(autoincrement())
+  mapStatId  Int
+  agentId    Int
+  winrate    Float
+  mapStat    MapWinrateStat @relation(fields: [mapStatId], references: [id])
+  agent      Agent    @relation(fields: [agentId], references: [id])
+
+  @@index([mapStatId])
+  @@index([agentId])
+}
+
+model DraftHistory {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique
+  public_link     String
+  creatorId       Int
+  creator         User     @relation(fields: [creatorId], references: [id])
+  map_selected    Int
+  state           String
+  attackers_side  Json
+  defenders_side  Json
+  draft_session   Json
+  createdAt       DateTime @default(now())
 }

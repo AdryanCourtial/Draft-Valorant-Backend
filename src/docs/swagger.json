@@ -1,0 +1,528 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Valorant Draft API",
+      "version": "1.0.0",
+      "description": "Documentation de l'API du backend"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000/api",
+        "description": "Serveur local"
+      }
+    ],
+    "paths": {
+      "/agent": {
+        "get": {
+          "summary": "Récupère tous les agents",
+          "tags": ["Agent"],
+          "responses": {
+            "200": {
+              "description": "Liste des agents récupérée avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Agent" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/agent/{id}": {
+        "get": {
+          "summary": "Récupère un agent par son id",
+          "tags": ["Agent"],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "UUID de l'agent",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Agent récupéré avec succès",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/Agent" }
+                }
+              }
+            },
+            "404": {
+              "description": "Agent non trouvé"
+            }
+          }
+        }
+      },
+      "/map": {
+        "get": {
+          "summary": "Récupère toutes les maps",
+          "tags": ["Map"],
+          "responses": {
+            "200": {
+              "description": "Liste des maps récupérée avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Map" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/role": {
+        "get": {
+          "summary": "Récupère tous les rôles",
+          "tags": ["Role"],
+          "responses": {
+            "200": {
+              "description": "Liste des rôles récupérée avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Role" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/login": {
+        "post": {
+          "summary": "Connection d'un utilisateur",
+          "tags": ["Auth"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Login successful",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserLogin"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Requête invalide"
+            },
+            "401": {
+              "description": "Invalid email or password"
+            }
+          }
+        }
+      },
+      "/auth/logout": {
+        "post": {
+          "summary": "Déconnexion d'un utilisateur",
+          "tags": ["Auth"],
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": {
+              "description": "Déconnexion réussie, token supprimé",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": { "type": "string", "example": "Déconnexion réussie, token supprimé" }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Non autorisé (token manquant ou invalide)"
+            }
+          }
+        }
+      },
+      "/user": {
+        "get": {
+          "summary": "Récupérer les informations de l'utilisateur connecté",
+          "tags": ["User"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Informations de l'utilisateur récupérées avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "username": { "type": "string" },
+                      "email": { "type": "string", "format": "email" },
+                      "createdAt": { "type": "string", "format": "date-time" },
+                      "drafts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "uuid": { "type": "string" },
+                            "createdAt": { "type": "string", "format": "date-time" }
+                          },
+                          "example": {
+                            "uuid": "123e4567-e89b-12d3-a456-426614174000",
+                            "createdAt": "2025-06-26T08:57:01.367Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Utilisateur non authentifié"
+            },
+            "404": {
+              "description": "Utilisateur non trouvé"
+            }
+          }
+        },
+        "post": {
+          "summary": "Inscription d'un nouvel utilisateur",
+          "tags": ["User"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Utilisateur créé avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Requête invalide"
+            },
+            "409": {
+              "description": "Email ou username déjà utilisé"
+            }
+          }
+        },
+        "put": {
+          "summary": "Mettre à jour les informations de l'utilisateur connecté",
+          "tags": ["User"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "email": { "type": "string", "format": "email" },
+                    "password": { "type": "string", "format": "password" }
+                  },
+                  "example": {
+                    "username": "nouveauNom",
+                    "email": "nouveau@mail.com",
+                    "password": "motdepasse123"
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Utilisateur mis à jour avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "user": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer" },
+                          "username": { "type": "string" },
+                          "email": { "type": "string", "format": "email" },
+                          "createdAt": { "type": "string", "format": "date-time" }
+                        }
+                      },
+                      "token": { "type": "string", "description": "Nouveau token JWT" }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Aucune donnée fournie ou données invalides"
+            },
+            "401": {
+              "description": "Non authentifié"
+            },
+            "500": {
+              "description": "Erreur serveur"
+            }
+          }
+        },
+        "delete": {
+          "summary": "Supprimer l'utilisateur connecté",
+          "tags": ["User"],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User deleted successfully"
+            },
+            "401": {
+              "description": "User ID is required"
+            },
+            "404": {
+              "description": "User not found"
+            }
+          }
+        }
+      },
+      "/history/{uuid}": {
+        "get": {
+          "summary": "Récupérer un historique de draft par UUID",
+          "tags": ["History"],
+          "parameters": [
+            {
+              "name": "uuid",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "UUID du draft"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Historique récupéré avec succès",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Draft"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Historique non trouvé"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "schemas": {
+        "Agent": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string", "description": "Identifiant unique de l'agent" },
+            "displayName": { "type": "string" },
+            "description": { "type": "string" },
+            "developerName": { "type": "string" },
+            "releaseDate": { "type": "string", "format": "date-time" },
+            "roleId": { "type": "string" },
+            "displayIcon": { "type": "string" },
+            "displayIconSmall": { "type": "string" }
+          },
+          "required": ["uuid", "displayName", "roleId"]
+        },
+        "Map": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string" },
+            "displayName": { "type": "string" },
+            "tacticalDescription": { "type": "string" },
+            "coordinates": { "type": "string" },
+            "displayIcon": { "type": "string" },
+            "listViewIcon": { "type": "string" },
+            "listViewIconTall": { "type": "string" },
+            "splash": { "type": "string" }
+          },
+          "required": ["uuid", "displayName"]
+        },
+        "Role": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string" },
+            "displayName": { "type": "string" },
+            "description": { "type": "string" },
+            "displayIcon": { "type": "string" }
+          },
+          "required": ["uuid", "displayName"]
+        },
+        "RegisterRequest": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string", "example": "phoenix" },
+            "email": { "type": "string", "example": "phoenix@example.com" },
+            "password": { "type": "string", "example": "securePassword123" }
+          },
+          "required": ["username", "email", "password"]
+        },
+        "LoginRequest": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string", "example": "phoenix@example.com" },
+            "password": { "type": "string", "example": "securePassword123" }
+          },
+          "required": ["email", "password"]
+        },
+        "User": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer" },
+            "username": { "type": "string" },
+            "email": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" },
+            "drafts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "uuid": { "type": "string" },
+                  "createdAt": { "type": "string", "format": "date-time" }
+                },
+                "example": {
+                  "uuid": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          }
+        },
+        "UserLogin": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "example": "Login successful"
+            },
+            "token": {
+              "type": "string",
+              "description": "JWT token d'authentification"
+            },
+            "user": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer", "example": 2 },
+                "username": { "type": "string", "example": "babalebaba" },
+                "email": { "type": "string", "format": "email", "example": "baba@baba.baba" },
+                "createdAt": { "type": "string", "format": "date-time", "example": "2025-06-26T08:57:01.367Z" }
+              }
+            }
+          }
+        },
+        "Draft": {
+          "type": "object",
+          "properties": {
+            "uuid": { "type": "string", "description": "Identifiant unique du draft" },
+            "publicLink": { "type": "string", "description": "Lien public du draft" },
+            "mapSelected": { "type": "integer", "description": "ID de la map sélectionnée" },
+            "state": { "type": "string", "description": "État de la partie" },
+            "attackersSide": {
+              "type": "object",
+              "description": "Informations sur le camp des attaquants",
+              "properties": {
+                "name": { "type": "string" },
+                "team_leader": { "type": "string" },
+                "isReady": { "type": "boolean" },
+                "winRate": { "type": "number" },
+                "agents": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "bans": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                }
+              }
+            },
+            "defendersSide": {
+              "type": "object",
+              "description": "Informations sur le camp des défenseurs",
+              "properties": {
+                "name": { "type": "string" },
+                "team_leader": { "type": "string" },
+                "isReady": { "type": "boolean" },
+                "winRate": { "type": "number" },
+                "agents": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "bans": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                }
+              }
+            },
+            "draftSession": {
+              "type": "object",
+              "description": "Informations sur la session de draft"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Date de création du draft"
+            }
+          },
+          "required": [
+            "uuid",
+            "publicLink",
+            "mapSelected",
+            "state",
+            "attackersSide",
+            "defendersSide",
+            "draftSession",
+            "createdAt"
+          ]
+        }
+      }
+    }
+  }
+  

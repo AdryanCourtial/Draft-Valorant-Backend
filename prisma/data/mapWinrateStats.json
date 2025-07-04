@@ -1,0 +1,189 @@
+[
+  {
+    "map": "Abyss",
+    "mapId": 11,
+    "atk_win%": 54.7,
+    "def_win%": 45.3,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.6 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.4 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.1 }
+    ]
+  },
+  {
+    "map": "Haven",
+    "mapId": 17,
+    "atk_win%": 52.6,
+    "def_win%": 47.4,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.4 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.3 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.0 }
+    ]
+  },
+  {
+    "map": "Pearl",
+    "mapId": 14,
+    "atk_win%": 53.8,
+    "def_win%": 46.2,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.4 },
+      { "agent": "Neon", "agentId": 21, "winrate": 51.2 },
+      { "agent": "Reyna", "agentId": 25, "winrate": 51.1 }
+    ]
+  },
+  {
+    "map": "Sunset",
+    "mapId": 13,
+    "atk_win%": 50.6,
+    "def_win%": 49.4,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.1 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.4 },
+      { "agent": "Neon", "agentId": 21, "winrate": 51.2 }
+    ]
+  },
+  {
+    "map": "Fracture",
+    "mapId": 3,
+    "atk_win%": 51.7,
+    "def_win%": 48.3,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.5 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.4 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.2 }
+    ]
+  },
+  {
+    "map": "Lotus",
+    "mapId": 12,
+    "atk_win%": 52.8,
+    "def_win%": 47.2,
+    "top_agents_win%": [
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.5 },
+      { "agent": "Clove", "agentId": 20, "winrate": 51.5 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.1 }
+    ]
+  },
+  {
+    "map": "Bind",
+    "mapId": 4,
+    "atk_win%": 52.0,
+    "def_win%": 48.0,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 51.9 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.1 },
+      { "agent": "Reyna", "agentId": 25, "winrate": 51.1 }
+    ]
+  },
+  {
+    "map": "Ascent",
+    "mapId": 1,
+    "atk_win%": 51.5,
+    "def_win%": 48.5,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.0 },
+      { "agent": "Reyna", "agentId": 25, "winrate": 51.2 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.1 }
+    ]
+  },
+  {
+    "map": "Split",
+    "mapId": 2,
+    "atk_win%": 51.9,
+    "def_win%": 48.1,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.1 },
+      { "agent": "Reyna", "agentId": 25, "winrate": 51.0 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.0 }
+    ]
+  },
+  {
+    "map": "Icebox",
+    "mapId": 15,
+    "atk_win%": 51.1,
+    "def_win%": 48.9,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.5 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.4 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.4 }
+    ]
+  },
+  {
+    "map": "Breeze",
+    "mapId": 5,
+    "atk_win%": 53.4,
+    "def_win%": 46.6,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 51.9 },
+      { "agent": "Chamber", "agentId": 7, "winrate": 51.6 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.5 }
+    ]
+  },
+  {
+    "map": "Corrode",
+    "mapId": 16,
+    "atk_win%": 54.4,
+    "def_win%": 45.6,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.2 },
+      { "agent": "Waylay", "agentId": 23, "winrate": 51.2 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.1 }
+    ]
+  },
+  {
+    "map": "Glitch",
+    "mapId": 9,
+    "atk_win%": 51.9,
+    "def_win%": 48.1,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 51.7 },
+      { "agent": "Neon", "agentId": 21, "winrate": 51.4 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.0 }
+    ]
+  },
+  {
+    "map": "Drift",
+    "mapId": 8,
+    "atk_win%": 50.7,
+    "def_win%": 49.3,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 51.8 },
+      { "agent": "Neon", "agentId": 21, "winrate": 51.4 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.3 }
+    ]
+  },
+  {
+    "map": "District",
+    "mapId": 6,
+    "atk_win%": 50.8,
+    "def_win%": 49.2,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.2 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.0 },
+      { "agent": "Neon", "agentId": 21, "winrate": 50.8 }
+    ]
+  },
+  {
+    "map": "Piazza",
+    "mapId": 10,
+    "atk_win%": 49.5,
+    "def_win%": 50.5,
+    "top_agents_win%": [
+      { "agent": "Neon", "agentId": 21, "winrate": 52.1 },
+      { "agent": "Clove", "agentId": 20, "winrate": 51.6 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.0 }
+    ]
+  },
+  {
+    "map": "Kasbah",
+    "mapId": 7,
+    "atk_win%": 49.7,
+    "def_win%": 50.3,
+    "top_agents_win%": [
+      { "agent": "Clove", "agentId": 20, "winrate": 52.4 },
+      { "agent": "Neon", "agentId": 21, "winrate": 51.2 },
+      { "agent": "Jett", "agentId": 27, "winrate": 51.0 }
+    ]
+  }
+]
