@@ -52,6 +52,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
   }
 
+    const regex = /^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/g
+
+    if (!password.match(regex)) {
+      return;
+    }
+
   try {
     const existingUser = await prisma.user.findFirst({
       where: {

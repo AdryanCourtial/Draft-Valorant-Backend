@@ -119,14 +119,14 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
     } catch (error) {
       console.error("Error creating room:", error);
-      socket.emit("room-error", { message: "Erreur lors de la création de la room" });
+      socket.emit("room-error", { message: "Error creating room" });
     }
   });
 
   socket.on("getRoom", (roomId: string) => {
       const room = rooms[roomId];
       if (!room) {
-        socket.emit("error", { message: "Room introuvable" });
+        socket.emit("error", { message: "Room not found" });
         return;
       }
       socket.join(roomId);
@@ -137,32 +137,32 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
     socket.on("join-side", ({ roomId, userId, side }: { roomId: string, userId: number, side: SideTeam }) => {
       const room = rooms[roomId];
       if (!room) {
-        socket.emit("error", { message: "Room introuvable" });
+        socket.emit("error", { message: "Room not found" });
         return;
       }
 
       // Vérifie que l'utilisateur est connecté
       if (!userId || userId === 0) {
-        socket.emit("room-error", { message: "Vous devez être connecté pour rejoindre une équipe." });
+        socket.emit("room-error", { message: "You must be logged in to join a team." });
         return;
       }
 
       // Vérifie que le côté demandé est valide
       if (side !== "attackers_side" && side !== "defenders_side") {
-        socket.emit("room-error", { message: "Côté invalide." });
+        socket.emit("room-error", { message: "Invalide side" });
         return;
       }
 
       // Vérifie que le côté n'est pas déjà occupé
       if (room[side].team_leader !== 0) {
-        socket.emit("room-error", { message: `Le côté ${side} est déjà occupé.` });
+        socket.emit("room-error", { message: `${side} side is busy` });
         return;
       }
 
       // Vérifie que l'utilisateur n'est pas déjà leader de l'autre côté
       const otherSide: SideTeam = side === "attackers_side" ? "defenders_side" : "attackers_side";
       if (room[otherSide].team_leader === userId) {
-        socket.emit("room-error", { message: `Vous êtes déjà leader de l'équipe ${otherSide}.` });
+        socket.emit("room-error", { message: `You are already the team leador of side ${otherSide}.` });
         return;
       }
 
@@ -180,12 +180,12 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       const room = rooms[roomId];
       
       if (!room) {
-        socket.emit("room-error", { message: "Room introuvable" });
+        socket.emit("room-error", { message: "Room not found" });
         return;
       }
 
       if (side !== "attackers_side" && side !== "defenders_side") {
-        socket.emit("room-error", { message: "Side invalide" });
+        socket.emit("room-error", { message: "Invalide side" });
         return;
       }
 
@@ -216,19 +216,19 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       
       
       if (VerifyIfChampIsOpen(room, agent)) {
-        socket.emit("room-error", { message: "Champion déjà pick ou ban" });
+        socket.emit("room-error", { message: "This champion is Already pick or ban" });
         return
       }
 
       if (!userId) {
-        socket.emit("room-error", { message: "Seul un utilisateur connecté peut pick" });
+        socket.emit("room-error", { message: "Only the team leader can pick" });
         return
       }
 
       const curent_round = GetCurentTurn(room)
 
       if (curent_round?.type === "ban" && VerifyIfBanRoleIsTaken(room, agent)){
-        socket.emit("room-error", { message: "Vous avez déjà ban personnages de ce rôle " });
+        socket.emit("room-error", { message: "You have already banned characters from this role" });
         return
       }
 
@@ -237,7 +237,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
       }
 
       if (room[curent_round?.team].team_leader !== userId) {
-        socket.emit("room-error", { message: "Ce n'est pas à votre tour de jouer" });
+        socket.emit("room-error", { message: "It's not your turn to play" });
         return
       }
 
@@ -278,7 +278,7 @@ export const draftSocketHandler = (io: Server, socket: Socket) => {
 
       io.to(room.uuid).emit('room-updated', room);
     } catch (error) {
-      io.to(room.id).emit('error-room', { message: 'Erreur serveur' });
+      io.to(room.id).emit('error-room', { message: 'Serveur error' });
     }
   });
 
