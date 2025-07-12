@@ -18,12 +18,6 @@ npm install
 npx prisma generate
 ```
 
-3. Remplis la base avec les données de test :
-
-```bash
-npx ts-node prisma/seed.ts
-```
-
 ---
 
 ## 🗄️ Synchroniser la base de données
@@ -32,6 +26,18 @@ Pour créer ou mettre à jour les tables **sans historique de migration** :
 
 ```bash
 npx prisma db push
+```
+
+3. Remplis la base avec les données de test :
+
+```bash
+npx ts-node prisma/seed.ts
+```
+
+Run le project
+
+```
+npm run dev
 ```
 
 ---
@@ -61,4 +67,3 @@ NODE_ENV="development"
 
 - **Prisma** est utilisé pour gérer la base MySQL.
 - **Swagger** est disponible à `/api-docs/` pour explorer les endpoints.
-
