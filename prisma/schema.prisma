@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int            @id @default(autoincrement())
+  email     String         @unique
   username  String
   password  String
-  createdAt DateTime @default(now())
-  drafts       DraftHistory[]
+  createdAt DateTime       @default(now())
+  drafts    DraftHistory[]
 
+  @@map("user")
 }
 
 model Agent {
@@ -36,7 +37,9 @@ model Agent {
   backgroundGradientColors String
   abilities                Ability[]
   winrateStats             AgentWinrateStat[]
-  topWinrates TopAgentWinrate[]
+  topWinrates              TopAgentWinrate[]
+
+  @@map("agent")
 }
 
 model Role {
@@ -46,6 +49,8 @@ model Role {
   description String
   displayIcon String
   agents      Agent[]
+
+  @@map("role")
 }
 
 model Ability {
@@ -56,11 +61,13 @@ model Ability {
   displayName String
   description String
   displayIcon String
+
+  @@map("ability")
 }
 
 model Map {
-  id                      Int     @id @default(autoincrement())
-  uuid                    String  @unique
+  id                      Int              @id @default(autoincrement())
+  uuid                    String           @unique
   displayName             String
   tacticalDescription     String?
   coordinates             String?
@@ -71,6 +78,8 @@ model Map {
   stylizedBackgroundImage String
   premierBackgroundImage  String
   mapWinrateStats         MapWinrateStat[]
+
+  @@map("map")
 }
 
 model AgentWinrateStat {
@@ -82,43 +91,47 @@ model AgentWinrateStat {
   recordedAt DateTime @default(now())
 
   @@index([agentId])
+  @@map("agent_winrate_stat")
 }
 
 model MapWinrateStat {
-  id         Int      @id @default(autoincrement())
-  mapId      Int
-  map        Map      @relation(fields: [mapId], references: [id])
-  atkWinrate Float
-  defWinrate Float
-  recordedAt DateTime @default(now())
+  id               Int               @id @default(autoincrement())
+  mapId            Int
+  map              Map               @relation(fields: [mapId], references: [id])
+  atkWinrate       Float
+  defWinrate       Float
+  recordedAt       DateTime          @default(now())
   topAgentWinrates TopAgentWinrate[]
 
   @@index([mapId])
+  @@map("map_winrate_stat")
 }
 
-
 model TopAgentWinrate {
-  id         Int      @id @default(autoincrement())
-  mapStatId  Int
-  agentId    Int
-  winrate    Float
-  mapStat    MapWinrateStat @relation(fields: [mapStatId], references: [id])
-  agent      Agent    @relation(fields: [agentId], references: [id])
+  id        Int            @id @default(autoincrement())
+  mapStatId Int
+  agentId   Int
+  winrate   Float
+  mapStat   MapWinrateStat @relation(fields: [mapStatId], references: [id])
+  agent     Agent          @relation(fields: [agentId], references: [id])
 
   @@index([mapStatId])
   @@index([agentId])
+  @@map("top_agent_winrate")
 }
 
 model DraftHistory {
-  id              Int      @id @default(autoincrement())
-  uuid            String   @unique
-  public_link     String
-  creatorId       Int
-  creator         User     @relation(fields: [creatorId], references: [id])
-  map_selected    Int
-  state           String
-  attackers_side  Json
-  defenders_side  Json
-  draft_session   Json
-  createdAt       DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique
+  public_link    String
+  creatorId      Int
+  creator        User     @relation(fields: [creatorId], references: [id])
+  map_selected   Int
+  state          String
+  attackers_side Json
+  defenders_side Json
+  draft_session  Json
+  createdAt      DateTime @default(now())
+
+  @@map("draft_history")
 }
